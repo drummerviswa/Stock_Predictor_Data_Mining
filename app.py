@@ -13,7 +13,7 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout
 from sklearn.preprocessing import MinMaxScaler
 
-df = pd.read_csv('data.csv')  # Load the ITC stock data
+df = pd.read_csv('ITC.csv')  # Load the ITC stock data
 
 # Check for missing data
 print(pd.isnull(df).sum())
@@ -336,4 +336,44 @@ plt.legend()
 plt.xticks(rotation=45)
 plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%b-%Y'))
+plt.show()
+
+# Last 'time_step' data points from the dataset for predicting the next days
+last_sequence = df_scaled[-time_step:]  # Taking the last time_step values as input
+last_sequence = last_sequence.reshape(1, last_sequence.shape[0], 1)
+
+# Placeholder for predictions
+future_predictions = []
+
+# Predicting next 5 days
+for _ in range(5):
+    # Predict the next price
+    next_price = model.predict(last_sequence)
+    
+    # Store the prediction
+    future_predictions.append(next_price[0, 0])
+    
+    # Update the sequence to include the predicted price for the next iteration
+    last_sequence = np.append(last_sequence[:, 1:, :], [[[next_price[0, 0]]]], axis=1)
+
+# Inverse transform the predictions to get actual price values
+future_predictions_rescaled = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
+
+# Create a DataFrame for predicted future prices
+future_dates = pd.date_range(start=df['Date'].iloc[-1], periods=6, freq='B')[1:]  # Next 5 business days
+predicted_df = pd.DataFrame({'Date': future_dates, 'Predicted_Close': future_predictions_rescaled.flatten()})
+
+# Display the predictions
+print(predicted_df)
+
+# Visualize the predictions
+plt.figure(figsize=(10, 6))
+plt.plot(df['Date'], df['close'], label='Historical Close Prices')
+plt.plot(predicted_df['Date'], predicted_df['Predicted_Close'], label='Predicted Close Prices', linestyle='--', marker='o', color='orange')
+plt.title('Next 5 Days Predicted Close Prices')
+plt.xlabel('Date')
+plt.ylabel('Close Price ₹INR')
+plt.legend()
+plt.grid(True)
+plt.xticks(rotation=45)
 plt.show()
