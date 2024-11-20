@@ -13,7 +13,7 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout
 from sklearn.preprocessing import MinMaxScaler
 
-df = pd.read_csv('ITC.csv')  # Load the ITC stock data
+df = pd.read_csv('ITC.csv')
 
 # Check for missing data
 print(pd.isnull(df).sum())
@@ -64,16 +64,16 @@ plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%b-%Y'))
 plt.show()
 
 # Create a new column 'Prediction' for future prediction
-rows = len(df.axes[0])  # Get the number of rows
-future_days = rows // 2  # Assuming 20% of data is used for prediction
-df['Prediction'] = df[['close']].shift(-future_days)  # Shift the 'close' column for prediction
+rows = len(df.axes[0])
+future_days = rows // 2
+df['Prediction'] = df[['close']].shift(-future_days)
 
 # Prepare data for training and testing
-F = np.array(df.drop(['Prediction', 'Date'], axis=1))[:-future_days]  # Dropping 'Date' column
+F = np.array(df.drop(['Prediction', 'Date'], axis=1))[:-future_days]
 T = np.array(df['Prediction'])[:-future_days]
 
 # Split data into training (80%) and testing (20%)
-f_train, f_test, t_train, t_test = train_test_split(F, T, test_size=0.2, shuffle=False)  # Ensure time series order
+f_train, f_test, t_train, t_test = train_test_split(F, T, test_size=0.2, shuffle=False)
 print(f_train.shape, f_test.shape, t_train.shape, t_test.shape)
 
 # Apply MinMaxScaler to scale features
@@ -93,9 +93,9 @@ rf = RandomForestRegressor(n_estimators=100, random_state=42)
 rf.fit(f_train_scaled, t_train)
 
 # Prepare the future dataset for prediction
-n_future = df.drop(['Prediction', 'Date'], axis=1)[:-future_days]  # Dropping 'Date' column
+n_future = df.drop(['Prediction', 'Date'], axis=1)[:-future_days]
 n_future = n_future.tail(future_days)
-n_future_scaled = scaler.transform(np.array(n_future))  # Scaling future data
+n_future_scaled = scaler.transform(np.array(n_future))
 
 # Predictions using DecisionTreeRegressor
 tree_prediction = tree.predict(n_future_scaled)
@@ -165,8 +165,8 @@ mae_rf = mean_absolute_error(t_test, rf.predict(f_test_scaled))
 print(f"Random Forest MSE: {mse_rf}, MAE: {mae_rf}")
 
 # Stock Market Buy and Sell Classification
-df['Return'] = df['close'].pct_change(90).shift(-90)  # 90-day return
-df['Signal'] = np.where(df['Return'] > 0, 1, 0)  # Buy (1) or Sell (0) signal
+df['Return'] = df['close'].pct_change(90).shift(-90)
+df['Signal'] = np.where(df['Return'] > 0, 1, 0)
 
 # Select features for classification model
 features = ['Day', 'Month', 'Year', 'LOW', 'OPEN', 'VOLUME', 'HIGH', 'close']
@@ -218,7 +218,7 @@ y_train, y_test = y[:train_size], y[train_size:]
 
 # Prepare features for other models
 features = ['Day', 'Month', 'Year', 'LOW', 'OPEN', 'VOLUME', 'HIGH', 'close']
-F = np.array(df[features])[:-60]  # Adjust based on time_step for LSTM
+F = np.array(df[features])[:-60]
 T = np.array(df['close'])[:-60]
 
 f_train, f_test, t_train, t_test = train_test_split(F, T, test_size=0.2, shuffle=False)
@@ -339,7 +339,7 @@ plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d-%b-%Y'))
 plt.show()
 
 # Last 'time_step' data points from the dataset for predicting the next days
-last_sequence = df_scaled[-time_step:]  # Taking the last time_step values as input
+last_sequence = df_scaled[-time_step:]
 last_sequence = last_sequence.reshape(1, last_sequence.shape[0], 1)
 
 # Placeholder for predictions
@@ -360,7 +360,7 @@ for _ in range(5):
 future_predictions_rescaled = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
 
 # Create a DataFrame for predicted future prices
-future_dates = pd.date_range(start=df['Date'].iloc[-1], periods=6, freq='B')[1:]  # Next 5 business days
+future_dates = pd.date_range(start=df['Date'].iloc[-1], periods=6, freq='B')[1:]
 predicted_df = pd.DataFrame({'Date': future_dates, 'Predicted_Close': future_predictions_rescaled.flatten()})
 
 # Display the predictions
